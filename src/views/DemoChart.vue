@@ -1,130 +1,85 @@
 <template>
-  <el-container class="container"
-                id="work-container">
+  <el-container class="container" id="work-container">
     <el-aside width="200px">
       <div class="template-box">
         <div class="header">模板列表
-          <i class="el-icon-circle-plus-outline add"
-             title="新建"
-             @click="handleClickTemp()"></i>
+          <i class="el-icon-circle-plus-outline add" title="新建" @click="handleClickTemp()"></i>
         </div>
         <ul class="template-list">
-          <li class="item"
-              :class="{'active':item.isActive}"
-              v-for="item in templateList"
-              :key="item.key"
-              @click="handleClickTemp(item.key)">
+          <li class="item" :class="{'active':item.isActive}" v-for="item in templateList" :key="item.key" @click="handleClickTemp(item.key)">
             {{item.name}}
-            <!-- <router-link to="/demo-chart/fir"></router-link> -->
           </li>
         </ul>
       </div>
     </el-aside>
     <el-main>
-      <el-button class="btn-save"
-                 @click="saveChart"
-                 type="success">保存</el-button>
-      <el-button class="btn-save-img"
-                 @click="saveChartImg"
-                 type="info">保存为图片</el-button>
-      <div class="workplace"
-           id="workplace">
-        <!-- <div class="workplace-chart" id="start">
-          <i class="el-icon-loading circle"></i>
-          <span>开始</span>
-          <div class="ep"></div>
-        </div> -->
+      <el-button class="btn-save" @click="saveChart" type="success">保存</el-button>
+      <el-button class="btn-save-img" @click="saveChartImg" type="info">保存为图片</el-button>
+      <div class="workplace" id="workplace">
         <template v-for="(item, idx) in chartData.nodes">
-          <chart-group v-if="item.type === 'group'"
-                       v-bind="item"
-                       :key="idx"
-                       @resize="resizeGroup"></chart-group>
-          <chart-node v-else
-                      v-bind="item"
-                      :key="idx"
-                      @edit="editNode(item,idx)"></chart-node>
+          <chart-group v-if="item.type === 'group'" v-bind="item" :key="idx" @resize="resizeGroup"></chart-group>
+          <chart-node v-else v-bind="item" :key="idx" @status="statusNode(item, idx)" @detail="detailNode(item, idx)" @edit="editNode(item,idx)"></chart-node>
         </template>
+        <div class="detail-popup" ref="detailPopup">
+          <h5 class="title">详情</h5>
+          <ul>
+            <li><span class="key">name: 456</span></li>
+            <li><span class="key">name: 456</span></li>
+            <li><span class="key">name: 456</span></li>
+          </ul>
+        </div>
       </div>
     </el-main>
     <el-aside width="200px">
-      <div class="box-card"
-           v-for="(item,idx) in list"
-           :key="idx">
+      <div class="box-card" v-for="(item,idx) in list" :key="idx">
         <div class="header">模块{{idx+1}}</div>
         <div class="card-body">
-          <div class="item"
-               v-for="(item2,idx2) in item"
-               :key="idx2"
-               :data-icon="item2.icon"
-               :data-text="item2.name"
-               :data-type="item2.type">
-            <i :class="[item2.icon,item2.type]"></i>
+          <div class="item" v-for="(item2, idx2) in item" :key="idx2" :data-icon="item2.icon" :data-text="item2.name" :data-type="item2.type">
+            <i :class="[item2.icon, item2.type]"></i>
             <span class="text">{{item2.name}}</span>
-
           </div>
         </div>
       </div>
     </el-aside>
 
     <!-- 模型保存弹出层 -->
-    <el-dialog title="智能模型保存"
-               :visible.sync="dialogFormVisible">
-      <el-form :model="chartForm"
-               ref="chartForm"
-               :label-width="formLabelWidth">
+    <el-dialog title="智能模型保存" :visible.sync="dialogFormVisible">
+      <el-form :model="chartForm" ref="chartForm" :label-width="formLabelWidth">
         <el-form-item label="模型名称">
-          <el-input v-model="chartForm.name"
-                    auto-complete="off"
-                    placeholder="请输入模型名称"></el-input>
+          <el-input v-model="chartForm.name" auto-complete="off" placeholder="请输入模型名称"></el-input>
         </el-form-item>
         <el-form-item label="批注内容">
-          <el-input type="textarea"
-                    :autosize="true"
-                    v-model="chartForm.msg"
-                    auto-complete="off"
-                    placeholder="请输入模型批注内容"></el-input>
+          <el-input type="textarea" :autosize="true" v-model="chartForm.msg" auto-complete="off" placeholder="请输入模型批注内容"></el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer"
-           class="dialog-footer">
+      <div slot="footer" class="dialog-footer">
         <el-button @click="cancelSave">取 消</el-button>
-        <el-button type="primary"
-                   @click="submitSave">确 定</el-button>
+        <el-button type="primary" @click="submitSave">确 定</el-button>
       </div>
     </el-dialog>
 
     <!-- 节点属性设置弹出层 -->
     <el-dialog :visible.sync="dialogFormVisible2">
       <div slot="title">属性设置</div>
-      <el-form :model="nodeForm"
-               ref="nodeForm"
-               :label-width="formLabelWidth">
+      <el-form :model="nodeForm" ref="nodeForm" :label-width="formLabelWidth">
         <el-form-item label="开始时间">
-          <el-date-picker v-model="nodeForm.startTime"
-                          type="datetime"
-                          placeholder="选择日期时间"></el-date-picker>
+          <el-date-picker v-model="nodeForm.startTime" type="datetime" placeholder="选择日期时间"></el-date-picker>
         </el-form-item>
         <el-form-item label="结束时间">
-          <el-date-picker v-model="nodeForm.endTime"
-                          type="datetime"
-                          placeholder="选择日期时间"></el-date-picker>
+          <el-date-picker v-model="nodeForm.endTime" type="datetime" placeholder="选择日期时间"></el-date-picker>
         </el-form-item>
         <el-form-item label="最小出现天数">
-          <el-input v-model="nodeForm.minDays"
-                    placeholder="请输入最小出现天数"
-                    style="width:100px"></el-input>
+          <el-input v-model="nodeForm.minDays" placeholder="请输入最小出现天数" style="width:100px"></el-input>
           <span>（请输入大于0的整数）</span>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary"
-                     @click="saveNodeEdit">确 定</el-button>
+          <el-button type="primary" @click="saveNodeEdit">确 定</el-button>
           <el-button @click="cancelSaveNodeEdit">取 消</el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
 
-    <div id="canvasDiv"
-         style='display: none;'></div>
+    <div id="canvasDiv" style='display: none;'></div>
 
   </el-container>
 </template>
@@ -132,7 +87,6 @@
 <script>
 import ChartNode from "@/components/ChartNode";
 import ChartGroup from "@/components/ChartGroup";
-// import html2canvas from "html2canvas";
 export default {
   name: "DemoChart",
   data () {
@@ -215,25 +169,15 @@ export default {
         ]
       ],
       jsp: null,
-      chartData: {
-        nodes: [
-          {
-            id: "start",
-            icon: "el-icon-loading",
-            type: "circle",
-            text: "开始",
-            nodeStyle: {
-              top: "100px",
-              left: "300px"
-            }
-          }
-        ],
-        connections: [],
-        props: {}
-      }
+      chartData: {"nodes":[{"id":"start","icon":"el-icon-loading","type":"circle","text":"开始","nodeStyle":{"top":"101px","left":"290px"}},{"id":"28bdc871-cf5c-4f12-99d2-1a2fb98967e0","icon":"el-icon-menu","type":"diamond","text":"节点1-1","nodeStyle":{"top":"226.17613220214844px","left":"135.99993896484375px"}},{"id":"114e7457-9d73-42b7-a70f-8e735c0d906a","icon":"el-icon-menu","type":"diamond","text":"节点1-1","nodeStyle":{"top":"246px","left":"298px"}},{"id":"15b6bb54-f4ff-454a-8128-de7f197d95b8","icon":"el-icon-menu","type":"diamond","text":"节点1-1","nodeStyle":{"top":"235px","left":"451px"}},{"id":"242f508b-ffde-4b5c-afa4-9dcfc231d672","icon":"el-icon-menu","type":"diamond","text":"节点1-1","nodeStyle":{"top":"425px","left":"34px"}},{"id":"1e8367db-ff07-44c7-a337-9caea9e84a3c","icon":"el-icon-star-on","type":"diamond","text":"节点1-2","nodeStyle":{"top":"428px","left":"181px"}}],"connections":[{"targetId":"28bdc871-cf5c-4f12-99d2-1a2fb98967e0","sourceId":"start"},{"targetId":"114e7457-9d73-42b7-a70f-8e735c0d906a","sourceId":"start"},{"targetId":"15b6bb54-f4ff-454a-8128-de7f197d95b8","sourceId":"start"},{"targetId":"242f508b-ffde-4b5c-afa4-9dcfc231d672","sourceId":"28bdc871-cf5c-4f12-99d2-1a2fb98967e0"},{"targetId":"1e8367db-ff07-44c7-a337-9caea9e84a3c","sourceId":"28bdc871-cf5c-4f12-99d2-1a2fb98967e0"}],"props":{}}
     };
   },
+  created () {
+      console.info(46)
+      
+  },
   mounted () {
+    console.info(35)
     const _self = this;
 
     jsPlumb.ready(() => {
@@ -256,22 +200,18 @@ export default {
               id: "Arrow"
             }
           ]
-          // ["Label", { label: "-", id: "label", cssClass: "aLabel" }]
         ],
         Container: "workplace"
       });
       this.jsp = instance;
 
       var canvas = document.getElementById("workplace");
-
-      // 删除连接线
-      // instance.bind("click", function(c) {
-      //   instance.deleteConnection(c);
-      // });
-
       // 监听 connection 事件
       instance.bind("connection", function (info) {
         // info.connection.getOverlay("label").setLabel(info.connection.id);
+      });
+      instance.bind("click", function (info) {
+        console.info(info);
       });
       // 连接线删除时触发
       instance.bind("connectionDetached", function (connection) {
@@ -388,6 +328,14 @@ export default {
         });
       });
       jsPlumb.fire("jsPlumbDemoLoaded", instance);
+        setTimeout(() => {
+            this.chartData.connections.forEach(item => {
+                console.info(item.sourceId)
+                console.info(item.targetId)
+                jsPlumb.connect({ uuids: [item.sourceId, item.targetId] })
+            })
+        }, 100)
+      
     });
   },
   methods: {
@@ -426,7 +374,6 @@ export default {
 
       this.jsp.makeSource(el, {
         filter: ".ep",
-        // anchor: "Continuous",
         anchor: ["Perimeter", { shape: "Rectangle" }],
         connectorStyle: {
           stroke: "#5c96bc",
@@ -457,9 +404,8 @@ export default {
     // 保存
     saveChart () {
       this.dialogFormVisible = true;
-      // console.log(this.jsp.getConnections());
       console.log(this.chartData);
-      // jsPlumb.repaintEverything();
+      console.info(JSON.stringify(this.chartData))
     },
     /**
      * @description 取消保存
@@ -496,7 +442,6 @@ export default {
             item.isActive = false;
           }
         });
-        // let url = "./static/json/" + key + ".json";
         let url = "/static/json/" + key + ".json";
 
         this.$axios
@@ -508,7 +453,6 @@ export default {
               this.chartData.nodes.forEach(item => {
                 this.initNode(item.id);
               });
-              // this.jsp.empty();
               this.chartData.connections.forEach(item => {
                 this.jsp.connect({
                   source: item.sourceId,
@@ -547,6 +491,14 @@ export default {
      */
     editNode (item, idx) {
       this.dialogFormVisible2 = true;
+    },
+    detailNode (item, idx) {
+      this.$refs.detailPopup.style.visibility = this.$refs.detailPopup.style.visibility === "visible" ? "hidden" : "visible";
+      this.$refs.detailPopup.style.left = item.nodeStyle.left;
+      this.$refs.detailPopup.style.top = parseInt(item.nodeStyle.top) - 65 + 'px';
+    },
+    statusNode (item, idx) {
+      console.info('status');
     },
     /**
      * @description 触发节点缩放事件
@@ -659,7 +611,6 @@ export default {
           var image = canvas
             .toDataURL("image/png")
             .replace("image/png", "image/octet-stream");
-          // window.location.href=image; // it will save locally
           var saveFile = function (data, filename) {
             var save_link = document.createElementNS(
               "http://www.w3.org/1999/xhtml",
@@ -697,16 +648,6 @@ export default {
       });
     }
   },
-  /* beforeRouteUpdate(to, from, next) {
-    console.log(to, from, next);
-  }, */
-  watch: {
-    $route (to, from) {
-      console.log(to, from);
-
-      // 对路由变化作出响应...
-    }
-  },
   components: {
     ChartNode,
     ChartGroup
@@ -730,6 +671,20 @@ export default {
   background: #ccc;
   top: 250px;
   left: 300px;
+}
+.detail-popup {
+  position: absolute;
+  text-align: left;
+  padding: 0 10px;
+  visibility: hidden;
+  border: solid 1px #f2f6fc;
+  border-radius: 2px;
+  background-color: #fff;
+  ul,
+  li {
+    padding: 0;
+    margin: 0;
+  }
 }
 </style>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="jtk-demo">
     <div class="jtk-demo-canvas canvas-wide chart-demo jtk-surface jtk-surface-nopan" id="canvas">
-      <div class="window" id="chartWindow1">window one</div>
+      <div class="window" @click="handleClick" id="chartWindow1">window one</div>
       <div class="window" id="chartWindow2">window two</div>
       <div class="window" id="chartWindow3">window three</div>
       <div class="window" id="chartWindow4">window four</div>
@@ -32,6 +32,10 @@ export default {
         Container: "canvas"
       });
 
+      instance.bind("connection", function (info) {
+        console.log(info);
+      });
+
       // suspend drawing and initialise.
       instance.batch(function() {
         // declare some common values:
@@ -50,20 +54,32 @@ export default {
           instance.addEndpoint(windows[i], {
             uuid: windows[i].getAttribute("id") + "-bottom",
             anchor: "Bottom",
+            // isSource: true,
+            // isTarget: true,
             maxConnections: -1
           });
-          instance.addEndpoint(windows[i], {
-            uuid: windows[i].getAttribute("id") + "-top",
-            anchor: "Top",
-            maxConnections: -1
-          });
+          if(i > 0) {
+            if (i % 2) {
+                instance.addEndpoint(windows[i], {
+                    uuid: windows[i].getAttribute("id") + "-top",
+                    anchor: "Left",
+                    maxConnections: -1
+                });
+            } else {
+                instance.addEndpoint(windows[i], {
+                    uuid: windows[i].getAttribute("id") + "-top",
+                    anchor: "Bottom",
+                    maxConnections: -1
+                });
+            }
+          }
         }
 
         instance.connect({
           uuids: ["chartWindow3-bottom", "chartWindow6-top"],
           overlays: overlays,
           detachable: true,
-          reattach: true
+          reattach: false
         });
         instance.connect({
           uuids: ["chartWindow1-bottom", "chartWindow2-top"],
@@ -87,6 +103,11 @@ export default {
 
       jsPlumb.fire("jsPlumbDemoLoaded", instance);
     });
+  },
+  methods: {
+      handleClick(e) {
+          console.info(e);
+      }
   }
 };
 </script>

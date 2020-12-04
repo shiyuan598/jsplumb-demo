@@ -1,8 +1,16 @@
 <template>
-  <div class="workplace-chart" :id="id" :style="nodeStyle" @dblclick="handleNodeDbclick">
+  <div class="workplace-chart" :id="id" :style="nodeStyle" @click="handleNodeClick" @dblclick="handleNodeDbclick">
     <i :class="[icon,type]"></i>
-    <span>{{text}}</span>
+    <span @click="handleTextClick">{{text}}</span>
     <div class="ep"></div>
+    <div class="detail-popup" ref="detailPopup">
+      <h5 class="title">{{text}}详情</h5>
+      <ul>
+        <li><span class="key">name: 456</span></li>
+        <li><span class="key">name: 456</span></li>
+        <li><span class="key">name: 456</span></li>
+      </ul>
+    </div>
   </div>
 </template>
 <script>
@@ -33,8 +41,15 @@ export default {
     return {};
   },
   methods: {
-    handleNodeDbclick() {
+    handleNodeDbclick(e) {
+      console.info(e);
       this.$emit("edit")
+    },
+    handleNodeClick(e) {
+      this.$emit("detail")
+    },
+    handleTextClick(e) {
+      this.$emit("status")
     }
   }
 };
